@@ -321,15 +321,16 @@ get_infra_id() {
 send_cluster_create_request() {
     local cluster_details
 
-    ocm_command_args="post /api/clusters_mgmt/v1/clusters --body='${CLUSTER_CONFIGURATION_FILE}'"
+    ocm_command_args="ocm post /api/clusters_mgmt/v1/clusters --body='${CLUSTER_CONFIGURATION_FILE}'"
     # Get existing cluster details
     existing_cluster_id=$(ocm get /api/clusters_mgmt/v1/clusters | jq -r ".items[] | select(.name==\"${OCM_CLUSTER_NAME}\") | .id")
     if [[ ! -z "${existing_cluster_id:-}" ]]; then
-        ocm_command_args="get /api/clusters_mgmt/v1/clusters/${existing_cluster_id}"
+        ocm_command_args="ocm get /api/clusters_mgmt/v1/clusters/${existing_cluster_id}"
     fi
 
     echo $ocm_command_args
-    cluster_details=$(ocm ${ocm_command_args} | jq -r | tee "${CLUSTER_DETAILS_FILE}")
+    ocm ${ocm_command_args} | jq -r | tee "${CLUSTER_DETAILS_FILE}"
+    cluster_details=$(eval ${ocm_command_args} | jq -r | tee "${CLUSTER_DETAILS_FILE}")
     if [[ -z "${cluster_details:-}" ]]; then
         printf "Something went wrong with cluster create request\n"
         exit 1
